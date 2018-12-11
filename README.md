@@ -1,4 +1,14 @@
 
+# Tip Prediction
+
+In this project we have worked on the data for Taxis in New York. The project aims to build a model which will predict whether
+whether a ride will get a tip or not and if yes how much will be the tip. The open source libraries used are :
+Shapely
+- Scikit learn
+- tabulate
+- pandas
+- numpy
+
 
 ```python
 import pandas as pd
@@ -21,21 +31,13 @@ warnings.filterwarnings('ignore')
 
 
 ```python
-# In this project we have worked on the data for Taxis in New York. The project aims to build a model which will predict whether
-# whether a ride will get a tip or not and if yes how much will be the tip. The open source libraries used are :
-# Shapely
-# Scikit learn
-# tabulate
-# pandas
-# numpy
-
-```
-
-
-```python
 # Read the tripdata_2015-09 dataset
 if os.path.exists('tripdata_2015-09.csv'): # Check if the dataset is present on local disk and load it
     data = pd.read_csv('tripdata_2015-09.csv')
+else: # Download dataset if not available on disk
+    url = "https://opal.ils.unc.edu/~hyadav/Comp755/tripdata_2015-09.csv"
+    data = pd.read_csv(url)
+    data.to_csv(url.split('/')[-1])
 
 # Print the size of the dataset
 print("Number of rows:", data.shape[0])
@@ -46,16 +48,13 @@ print("Number of columns:", data.shape[1])
     Number of columns: 22
     
 
+The Trip distance graph is drawn with outliers and without outliers, Outliers are defined as any point located further than 
+3 standard deviations from the mean. The lognorm fit is applied on without outliers graph and it can be seen that the graph
+is skewed towards right.
 
-```python
-# The Trip distance graph is drawn with outliers and without outliers, Outliers are defined as any point located further than 
-# 3 standard deviations from the mean. The lognorm fit is applied on without outliers graph and it can be seen that the graph
-# is skewed towards right.
-
-# We hypothesis that the trips are not random as the we do not see the Gaussian distribution in the grahs drawn below. This skewed
-# nature tells that the taxi hire might be driven by different causes like people being pushed for common causes of reaching
-# early to workplace etc.
-```
+We hypothesis that the trips are not random as the we do not see the Gaussian distribution in the grahs drawn below. This skewed
+nature tells that the taxi hire might be driven by different causes like people being pushed for common causes of reaching
+early to workplace etc.
 
 
 ```python
@@ -92,16 +91,13 @@ plt.show()
 ```
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_4_0.png)
+![png](Comp755_FinalProject_files/Comp755_FinalProject_5_0.png)
 
 
-
-```python
-# Below is the analysis of mean and median trip distance grouped under different hours to understand the trean of trip distances
-# by hour of the day. It can be seen that the long trips are in the mornings and evenings although the peaks in evenings are
-# shorter than the peaks in mornings. It can be hypothesized that a lot trips which arise in the mornings can include trips
-# with longer distance like long trips to ariports etc. In the nex section we will compare the trips to Airport separately.
-```
+Below is the analysis of mean and median trip distance grouped under different hours to understand the trean of trip distances
+by hour of the day. It can be seen that the long trips are in the mornings and evenings although the peaks in evenings are
+shorter than the peaks in mornings. It can be hypothesized that a lot trips which arise in the mornings can include trips
+with longer distance like long trips to ariports etc. In the nex section we will compare the trips to Airport separately.
 
 
 ```python
@@ -133,7 +129,7 @@ print(tabulate(table1.values.tolist(),["Hour","Mean distance","Median distance"]
 ```
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_6_0.png)
+![png](Comp755_FinalProject_files/Comp755_FinalProject_7_0.png)
 
 
     -----Trip distance by hour of the day-----
@@ -166,18 +162,15 @@ print(tabulate(table1.values.tolist(),["Hour","Mean distance","Median distance"]
         23          3.19154               2.22
     
 
+In order to study the trips that originate/end from/to the airport we can use the dictionary of variables. THe variable RateCodeID 
+contains values indicating the final rate that was applied. Among these ID we selected the IDs for JFK and Newark airports namely
+2 snd 3. THe belwo graphs show the number, .eam fare of the trips and the distribution of the trips sidtances by hour of the day.
+The trip distance distribution shows two peaks. Airport trips follow the same trend as the rest of the trips for short trips 
+(trip distance ≤ 2miles). there is also an increased number of long range trips (18 miles) which might correspond to a great 
+number people coming to airports from further residential areas. A check on google map shows that the distance between JFK and 
+Manhattan is about 18 miles whereas Newark to Manhattan is 15 miles. We also notice that our assumption that long trip counts in the 
+morning might be due the large number of airport trips is not quite right as in the morning the airport trips are in low number.
 
-```python
-# In order to study the trips that originate/end from/to the airport we can use the dictionary of variables. THe variable RateCodeID 
-# contains values indicating the final rate that was applied. Among these ID we selected the IDs for JFK and Newark airports namely
-# 2 snd 3. THe belwo graphs show the number, .eam fare of the trips and the distribution of the trips sidtances by hour of the day.
-# The trip distance distribution shows two peaks. Airport trips follow the same trend as the rest of the trips for short trips 
-# (trip distance ≤ 2miles). there is also an increased number of long range trips (18 miles) which might correspond to a great 
-# number people coming to airports from further residential areas. A check on google map shows that the distance between JFK and 
-# Manhattan is about 18 miles whereas Newark to Manhattan is 15 miles. We also notice that our assumption that long trip counts in the 
-# morning might be due the large number of airport trips is not quite right as in the morning the airport trips are in low number.
-
-```
 
 
 ```python
@@ -232,14 +225,11 @@ plt.show()
 ```
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_9_0.png)
+![png](Comp755_FinalProject_files/Comp755_FinalProject_10_0.png)
 
 
-
-```python
-# Now build a derived variable for tip as a percentage of the total fare. Since the initial charge for NYC green taxi is $2.5,
-# any transaction with a smaller total amount is invalid, thus it is to be dropped.
-```
+Now build a derived variable for tip as a percentage of the total fare. Since the initial charge for NYC green taxi is $2.5,
+any transaction with a smaller total amount is invalid, thus it is to be dropped.
 
 
 ```python
@@ -260,16 +250,13 @@ print("Summary: Tip percentage\n",data.Tip_percentage.describe())
     Name: Tip_percentage, dtype: float64
     
 
-
-```python
-# In below point we do a comparision between trips to/from airports with rest of the trips and we mainly focus on the trips 
-# originating from upper manhatttan
-# In order to recognize the trip from upper manhattan we follow below stategy:
-# 1) From googgle map, we collect latitude and longitude data of at least 12 points that approximately define the bounding box of 
-# upper Manhattan
-# 2) We create a polygon using shapely.geometry.Polygon
-# 3) We check if the polygon contains a location defined by (latitude,longitude)
-```
+In below point we do a comparision between trips to/from airports with rest of the trips and we mainly focus on the trips 
+originating from upper manhatttan
+In order to recognize the trip from upper manhattan we follow below stategy:
+- From googgle map, we collect latitude and longitude data of at least 12 points that approximately define the bounding box of 
+  upper Manhattan
+- We create a polygon using shapely.geometry.Polygon
+- We check if the polygon contains a location defined by (latitude,longitude)
 
 
 ```python
@@ -296,14 +283,11 @@ data['U_manhattan'] = data[['Pickup_latitude','Pickup_longitude']].apply(lambda 
 print("Processing time ", dt.datetime.now()-tic)
 ```
 
-    Processing time  0:01:25.780166
+    Processing time  0:01:39.649680
     
 
-
-```python
-# The two distributions look the same however the t-test results in a zero p-value to imply that the two groups are different
-# at 95% level of condidence
-```
+The two distributions look the same however the t-test results in a zero p-value to imply that the two groups are different
+at 95% level of condidence
 
 
 ```python
@@ -332,40 +316,42 @@ print('t-test results:', ttest_ind(v1,v2,equal_var=False))
 ```
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_15_0.png)
+![png](Comp755_FinalProject_files/Comp755_FinalProject_16_0.png)
 
 
     t-test results: Ttest_indResult(statistic=55.958566779306864, pvalue=0.0)
     
 
+Since we have played around with data with gives us pretty good idea of the entire data set now we can proceed to constuctively 
+work on aour predictive model. Broadly we will follow four steps namely:
+- Data Cleaning
+- Feature Enginnering
+- Exploratory Data Analysis
+- Model Building
+The cleaning maily consists of replacing invalid values like missing values or values not allowed for specific variables as per
+the dictionary of variables with with the most frequent values in each categorical variable whereas the median was used for 
+continuous numerical variables. Here variables were also converted in their appropriate format such datetime.
+In feature engineering we created 10 variables which from derived from the existing variables like pickup and dropoff 
+locations and timestamps, trip distance.
+In Data Exploraiton we analyzed each variable closely which involved comparision to other variables and eventually the target
+variable, Percentage tip. We found that the numerical variables had poweer distribution or lognormal distribution. We also found
+that only 40% of the transactions paid tip. And 99.99% of these payments were done by credit cards. This made us build our model
+in two stages:
+- Classification model to find out weither a transaction will pay tip and 
+- Regression model to find the percentage of the tip only if the transaction was classified as a tipper.
+In building our model we mainly used random forest regression and gradient boosting classifier algorithms implemented in
+sklearn after routines to optimize best parameters
 
-```python
-# Since we have played around with data with gives us pretty good idea of the entire data set now we can proceed to constuctively 
-# work on aour predictive model. Broadly we will follow four steps namely:
-# 1) Data Cleaning
-# 2) Feature Enginnering
-# 3) Exploratory Data Analysis
-# 4) Model Building
-# The cleaning maily consists of replacing invalid values like missing values or values not allowed for specific variables as per
-# the dictionary of variables with with the most frequent values in each categorical variable whereas the median was used for 
-# continuous numerical variables. Here variables were also converted in their appropriate format such datetime.
-# In feature engineering we created 10 variables which from derived from the existing variables like pickup and dropoff 
-# locations and timestamps, trip distance.
-# In DAta Exploraiton we analyzed each variable closely which involved comparision to other variables and eventually the target
-# variable, Percentage tip. We foind that the numerical variables had poweer distribution or lognormal distribution. WE also found
-# that only 40% of the transactions paid tip. And 99.99% of these payments were done by credit cards. This made us build our model
-# in two stages. (1) classification model to find out weither a transaction will pay tip and 
-# (2) regression model to find the percentage of the tip only if the transaction was classified as a tipper.
-# In building our model we mainly used random forest regression and gradient boosting classifier algorithms implemented in
-# sklearn after routines to optimize best parameters
-
-```
 
 
 ```python
 # Download the tripdata_2015-09 dataset
 if os.path.exists('tripdata_2015-09.csv'): # Check if the dataset is present on local disk and load it
     data = pd.read_csv('tripdata_2015-09.csv')
+else: # Download dataset if not available on disk
+    url = "https://opal.ils.unc.edu/~hyadav/Comp755/tripdata_2015-09.csv"
+    data = pd.read_csv(url)
+    data.to_csv(url.split('/')[-1])
 
 # Print the size of the dataset
 print("Number of rows:", data.shape[0])
@@ -379,20 +365,14 @@ backup_data = data.copy()
     Number of columns:  22
     
 
-
-```python
-# 1. Cleaning 
-# This part concerns work done to treat invalid data.
-# Ehail_fee was removed since 99% of the data are missing.
-# Missing values in Trip_type were replace with the most common value that was 1.
-# Invalid data were found in:
-# RateCodeID: about 0.01% of the values were 99. These were replaced by the most common value 2.
-# Extra: 0.08% of transactions had negative Extra. These were replaced by 0 as the most frequent.
-# Total_amount, Fare_amount, improvement_surcharge, Tip_amount: 0.16% of values were negative. The cases were considered as being
-# machine errors during the data entry. They were replaced by their absolute values. Furthermore, as the minimum Total_amount that
-# is chargeable for any service is $2.5, every transaction falling below that amount was replaced by the median value of the 
-# Total_amount 11.76.
-```
+# Cleaning 
+- This part concerns work done to treat invalid data.
+- Ehail_fee was removed since 99% of the data are missing.
+- Missing values in Trip_type were replace with the most common value that was 1.
+Invalid data were found in:
+- RateCodeID: about 0.01% of the values were 99. These were replaced by the most common value 2.
+- Extra: 0.08% of transactions had negative Extra. These were replaced by 0 as the most frequent.
+- Total_amount, Fare_amount, improvement_surcharge, Tip_amount: 0.16% of values were negative. The cases were considered as being machine errors during the data entry. They were replaced by their absolute values. Furthermore, as the minimum Total_amount that is chargeable for any service is $2.5, every transaction falling below that amount was replaced by the median value of the Total_amount 11.76.
 
 
 ```python
@@ -489,21 +469,16 @@ data = clean_data(data)
     Done cleaning
     
 
-
-```python
-# 2) Feature Engineering: Here we created some varibales based on below reasoning-
-# -- With_tip: This is to identify transactions with tips or not. This variable was created after discovering that 60% of 
-# transactions have 0 tip.
-# -- Speed: this the ratio of Trip_distance to Trip_duration. At this level, all entries with speeds higher than 240 mph were 
-# dropped since this is the typical highest speed for cars commonly used as taxi
-# -- Time variables: Week, Month_day(Day of month), Week_day (Day of week), Hour (hour of day), Shift_type (shift period of the 
-# day) and Trip_duration. The idea behind creating these variables is that peple are more likely to tip on the basis of the hour 
-# or day, for instance people tip generously over weekends as they are in a joyous mood generally.
-# -- Trip directions: Direction_NS (is the cab moving Northt to South?) and Direction_EW (is the cab moving East to West). 
-# These are components of the two main directions, horizontal and vertical.
-# Also we noticed that the trips from upper manhattan had different ratio of tip percentage than other boroughs. So we include
-# one more variable that denotes whether the trip is from Upper Manhattan.
-```
+# Feature Engineering: 
+Here we created some varibales based on below reasoning-
+- With_tip: This is to identify transactions with tips or not. This variable was created after discovering that 60% of 
+transactions have 0 tip.
+- Speed: this the ratio of Trip_distance to Trip_duration. At this level, all entries with speeds higher than 240 mph were 
+dropped since this is the typical highest speed for cars commonly used as taxi
+- Time variables: Week, Month_day(Day of month), Week_day (Day of week), Hour (hour of day), Shift_type (shift period of the 
+day) and Trip_duration. The idea behind creating these variables is that peple are more likely to tip on the basis of the hour 
+or day, for instance people tip generously over weekends as they are in a joyous mood generally.
+- Trip directions: Direction_NS (is the cab moving Northt to South?) and Direction_EW (is the cab moving East to West). These are components of the two main directions, horizontal and vertical. Also we noticed that the trips from upper manhattan had different ratio of tip percentage than other boroughs. So we include one more variable that denotes whether the trip is from Upper Manhattan.
 
 
 ```python
@@ -619,15 +594,11 @@ print ("size after feature engineering:", data.shape)
     size after feature engineering: (1494926, 33)
     
 
-
-```python
-# 3. Exploratory Data Analysis
-# This was most important step of our project. A look at the distribution of the target variable, "Tip_percentage" showed that 60%
-# of all transactions did not give tip THe graph below shows this fact. Based on this information, the model can be built in two steps:-
-# 1. Create classification model to predict weither tip will be given or not. The variable "With_Tip" was created for the same
-# purpose.
-# 2. Create regression model for transaction with non-zero tip
-```
+# Exploratory Data Analysis
+This was most important step of our project. A look at the distribution of the target variable, "Tip_percentage" showed that 60%
+of all transactions did not give tip THe graph below shows this fact. Based on this information, the model can be built in two steps:-
+- Create classification model to predict weither tip will be given or not. The variable "With_Tip" was created for the same purpose.
+- Create regression model for transaction with non-zero tip
 
 
 ```python
@@ -651,7 +622,7 @@ plt.show()
 ```
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_25_0.png)
+![png](Comp755_FinalProject_files/Comp755_FinalProject_26_0.png)
 
 
 
@@ -784,12 +755,9 @@ def generate_histogram(df,catName):
     plt.xlabel('Tip (%)')
 ```
 
-
-```python
-# The below code calls the function visualize_continuous that takes the data to plot the trip fare_amount against the count and
-# fare amount against tip percentage which shows that fare amount could be a good predictor variable. We performed the t-test 
-# and found that fare amount is a significant predictor.
-```
+The below code calls the function visualize_continuous that takes the data to plot the trip fare_amount against the count and
+fare amount against tip percentage which shows that fare amount could be a good predictor variable. We performed the t-test 
+and found that fare amount is a significant predictor.
 
 
 ```python
@@ -799,17 +767,14 @@ visualize_continuous(data1,'Fare_amount',outlier='on')
 ```
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_28_0.png)
+![png](Comp755_FinalProject_files/Comp755_FinalProject_29_0.png)
 
 
-
-```python
-# The code below contains a lot of functions to explores the relationship of different variables with tip_percentage. We focus on
-# the trips which are of longer duration i.e. more than 1350 min.  The outpt of the below shows heat map through which number of
-# trips between two boroughs can be found out. It ca be seen that majority of the trips are intra-boroughs.There is a great number
-# of trips from Brooklyn to Manhattan whereas there is no Staten Island trip that takes more than 1350 minutes. The map on the
-# right showhs that the cluster behaves the same way irrespective of the hour of the day
-```
+The code below contains a lot of functions to explores the relationship of different variables with tip_percentage. We focus on
+the trips which are of longer duration i.e. more than 1350 min.  The outpt of the below shows heat map through which number of
+trips between two boroughs can be found out. It ca be seen that majority of the trips are intra-boroughs.There is a great number
+of trips from Brooklyn to Manhattan whereas there is no Staten Island trip that takes more than 1350 minutes. The map on the
+right showhs that the cluster behaves the same way irrespective of the hour of the day
 
 
 ```python
@@ -879,14 +844,11 @@ plt.show()
 ```
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_30_0.png)
+![png](Comp755_FinalProject_files/Comp755_FinalProject_31_0.png)
 
 
-
-```python
-# At the end, we draw a heat map of all the independent variables to see if there is a correlation which exists among 
-# these variables.
-```
+At the end, we draw a heat map of all the independent variables to see if there is a correlation which exists among 
+these variables.
 
 
 ```python
@@ -903,15 +865,12 @@ plt.show()
 ```
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_32_0.png)
+![png](Comp755_FinalProject_files/Comp755_FinalProject_33_0.png)
 
 
-
-```python
-# Afterwards, a t-test was performed between the trips from upper manhattan and the trips from rest of the manhattan. We can see
-# that these groups have different means and the chi-square test shows that the variable can significantly distinguish between 
-# trips with tip and without trips.
-```
+Afterwards, a t-test was performed between the trips from upper manhattan and the trips from rest of the manhattan. We can see
+that these groups have different means and the chi-square test shows that the variable can significantly distinguish between 
+trips with tip and without trips.
 
 
 ```python
@@ -924,7 +883,7 @@ test_classification(data,'U_manhattan')
     
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_34_1.png)
+![png](Comp755_FinalProject_files/Comp755_FinalProject_35_1.png)
 
 
     Ttest_indResult(statistic=52.88979199536133, pvalue=0.0)
@@ -936,20 +895,17 @@ test_classification(data,'U_manhattan')
     Power_divergenceResult(statistic=139520.27862838889, pvalue=0.0)
     
 
+The below function performs a one way anova to are any of the payment type which play a significant role in deciding whether
+a trip ends up with a tip or not. The below distribution shows that almost 99% of the transactions with tip were paid by
+payment method 1 i.e. credit card. THis variable may not be good one with respect to regression model we intend to apply to
+find out the tip amount but could play a significant variable to decide whether a trip will end up in tip or not.
 
-```python
-# The below function performs a one way anova to are any of the payment type which play a significant role in deciding whether
-# a trip ends up with a tip or not. The below distribution shows that almost 99% of the transactions with tip were paid by
-# payment method 1 i.e. credit card. THis variable may not be good one with respect to regression model we intend to apply to
-# find out the tip amount but could play a significant variable to decide whether a trip will end up in tip or not.
-
-# Similar analysis were carried on every variable in order to find the most important variables with enough variance for either 
-# the regression model and/or classification model. This visual exploration analysis and statistical tests section concluded by 
-# selecting Total_amount, Fare_amount, Trip_distance, Tolls_amount, Trip_duration, Speed_mph, U_manhattan, Direction_NS and 
-# Direction_EW as initial important features to train and optimized the regression model. Payment_type, Passenger_count, Extra, 
-# Week_day, Hour, Direction_NS, Direction_EW, U_manhattan and Shift_type were selected as initial variables to train the 
-# classification model.
-```
+Similar analysis were carried on every variable in order to find the most important variables with enough variance for either 
+the regression model and/or classification model. This visual exploration analysis and statistical tests section concluded by 
+selecting Total_amount, Fare_amount, Trip_distance, Tolls_amount, Trip_duration, Speed_mph, U_manhattan, Direction_NS and 
+Direction_EW as initial important features to train and optimized the regression model. Payment_type, Passenger_count, Extra, 
+Week_day, Hour, Direction_NS, Direction_EW, U_manhattan and Shift_type were selected as initial variables to train the 
+classification model.
 
 
 ```python
@@ -968,29 +924,26 @@ visualize_categories(data1,'Payment_type','histogram',[13,20])
     
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_36_1.png)
+![png](Comp755_FinalProject_files/Comp755_FinalProject_37_1.png)
 
 
-
-```python
 # Model Building:
-# Finally we come to the phase of model building. The fist step we follow is classification, we have already see that the payment
-# type plays a huge role in deciding whether trp will end with tip or not. We use  GradientBoostingClassifier (from scikit learn)
-# which gave a score of 0.96. Starting with the GradientBoostinClassier model (default paremeters), the number of trees was 
-# optimized through a grid search. Below are some point about sample size and other details:
+Finally we come to the phase of model building. The fist step we follow is classification, we have already see that the payment
+type plays a huge role in deciding whether trp will end with tip or not. We use  GradientBoostingClassifier (from scikit learn)
+which gave a score of 0.96. Starting with the GradientBoostinClassier model (default paremeters), the number of trees was 
+optimized through a grid search. Below are some point about sample size and other details:
 
-# -- Sample size for training and optimization was chosen as 100000. This is surely a small sample size compared to the available
-# data but the optimization was stable and good enough with 5 folds cross-validation.
-# -- Only the number of trees were optimized as they are the controlling key of boosting model accuracy. Other parameters were not
-# optimized since the improvement yield was too small compared to the computation time and cost
-# -- ROC-AUC (Area under the curve of receiver operating characteristic) was used as a model validation metric
+- Sample size for training and optimization was chosen as 100000. This is surely a small sample size compared to the available
+data but the optimization was stable and good enough with 5 folds cross-validation.
+- Only the number of trees were optimized as they are the controlling key of boosting model accuracy. Other parameters were not
+optimized since the improvement yield was too small compared to the computation time and cost
+- ROC-AUC (Area under the curve of receiver operating characteristic) was used as a model validation metric
 
-# Below is the summary of the result acquired through the code
-# -- optimized number of trees: 130
-# -- optimized variables: ['Payment_type','Total_amount','Trip_duration','Speed_mph','MTA_tax','Extra','Hour','Direction_NS', 
-# 'Direction_EW','U_manhattan']
-# -- roc-auc on a different test sample: 0.9636
-```
+Below is the summary of the result acquired through the code
+- optimized number of trees: 130
+- optimized variables: ['Payment_type','Total_amount','Trip_duration','Speed_mph','MTA_tax','Extra','Hour','Direction_NS', 
+'Direction_EW','U_manhattan']
+- roc-auc on a different test sample: 0.9636
 
 
 ```python
@@ -1113,19 +1066,19 @@ print("Processing time:", dt.datetime.now()-tic)
 ```
 
     Optimizing the classifier...
-    [mean: 0.98834, std: 0.00117, params: {'n_estimators': 30}, mean: 0.99322, std: 0.00057, params: {'n_estimators': 50}, mean: 0.99508, std: 0.00048, params: {'n_estimators': 70}, mean: 0.99600, std: 0.00037, params: {'n_estimators': 90}, mean: 0.99658, std: 0.00028, params: {'n_estimators': 110}, mean: 0.99693, std: 0.00027, params: {'n_estimators': 130}, mean: 0.99716, std: 0.00022, params: {'n_estimators': 150}] {'n_estimators': 150} 0.9971618238061314
+    [mean: 0.98948, std: 0.00083, params: {'n_estimators': 30}, mean: 0.99335, std: 0.00045, params: {'n_estimators': 50}, mean: 0.99528, std: 0.00046, params: {'n_estimators': 70}, mean: 0.99630, std: 0.00036, params: {'n_estimators': 90}, mean: 0.99690, std: 0.00032, params: {'n_estimators': 110}, mean: 0.99723, std: 0.00029, params: {'n_estimators': 130}, mean: 0.99747, std: 0.00028, params: {'n_estimators': 150}] {'n_estimators': 150} 0.997468632729903
     
     Model report:
-    Accuracy: 0.97706
-    AUC Score (Train): 0.9984439519827716
-    CV Score - Mean : 0.9971618 | Std : 0.0002237665 | Min : 0.9967729 | Max : 0.997472
+    Accuracy: 0.97699
+    AUC Score (Train): 0.9986583139599121
+    CV Score - Mean : 0.9974686 | Std : 0.0002807974 | Min : 0.9970994 | Max : 0.9978044
     
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_39_1.png)
+![png](Comp755_FinalProject_files/Comp755_FinalProject_40_1.png)
 
 
-    Processing time: 0:06:56.612649
+    Processing time: 0:05:59.675923
     
 
 
@@ -1139,24 +1092,21 @@ ypred = gs_cls.best_estimator_.predict(test[predictors])
 print("ROC AUC:", metrics.roc_auc_score(ypred,test.With_tip))
 ```
 
-    ROC AUC: 0.9680241705850199
+    ROC AUC: 0.9670504936344075
     
 
+The next step is to perform Regressional analysis. We use random forest regression for this purpose. Below are some point 
+about sample size and other details:
 
-```python
-# The next step is to perform Regressional analysis. We use random forest regression for this purpose. Below are some point 
-# about sample size and other details:
+- Sample size for training and optimization was chosen as 100000 with 5 folds cross-validation
+- Only the number of trees were optimized as they are the controlling key of boosting model accuracy. Other parameters were 
+not optimized since the improvement yield was too small compared to the computation time and cost
+- The mean square error was used as a valuation metric
 
-# -- Sample size for training and optimization was chosen as 100000 with 5 folds cross-validation
-# -- Only the number of trees were optimized as they are the controlling key of boosting model accuracy. Other parameters were 
-# not optimized since the improvement yield was too small compared to the computation time and cost
-# -- The mean square error was used as a valuation metric
-
-# Below are resuts acquired from the code below:
-# -- optimized number of trees: 150
-# -- optimized variables: Total_amount, Trip_duration, Speed_mph
-# -- mean square error on a different test sample: 14.3648 
-```
+Below are resuts acquired from the code below:
+- optimized number of trees: 150
+- optimized variables: Total_amount, Trip_duration, Speed_mph
+- mean square error on a different test sample: 14.3648 
 
 
 ```python
@@ -1210,32 +1160,29 @@ print(dt.datetime.now()-tic)
 plot_opt_results(gs_rfr)
 ```
 
-    [mean: -16.52989, std: 1.14207, params: {'n_estimators': 50}, mean: -16.34333, std: 1.09517, params: {'n_estimators': 75}, mean: -16.32970, std: 1.06344, params: {'n_estimators': 100}, mean: -16.32029, std: 1.01116, params: {'n_estimators': 125}, mean: -16.39916, std: 1.04627, params: {'n_estimators': 150}, mean: -16.29773, std: 1.07029, params: {'n_estimators': 175}] {'n_estimators': 175} -16.297730418670916
+    [mean: -14.87971, std: 0.55324, params: {'n_estimators': 50}, mean: -14.79430, std: 0.42568, params: {'n_estimators': 75}, mean: -14.78471, std: 0.45720, params: {'n_estimators': 100}, mean: -14.80025, std: 0.60780, params: {'n_estimators': 125}, mean: -14.70800, std: 0.51408, params: {'n_estimators': 150}, mean: -14.68153, std: 0.55748, params: {'n_estimators': 175}] {'n_estimators': 175} -14.681534414798984
     
     Model report:
-    Accuracy: 2.2545140622493984
-    CV Score - Mean : -16.32839 | Std : 1.054318 | Min : -17.54424 | Max : -14.56236
+    Accuracy: 2.086399597857632
+    CV Score - Mean : -14.75519 | Std : 0.532602 | Min : -15.52856 | Max : -14.1299
     
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_42_1.png)
+![png](Comp755_FinalProject_files/Comp755_FinalProject_43_1.png)
 
 
-    RFR test mse: 14.643768175653333
-    RFR r2: 0.32493540858609127
-    0:13:05.830764
+    RFR test mse: 15.233743385062716
+    RFR r2: 0.28323323914783805
+    0:13:52.783094
     
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_42_3.png)
+![png](Comp755_FinalProject_files/Comp755_FinalProject_43_3.png)
 
 
-
-```python
-# Final Overall Model#
-# Now this is the step were we combine both our models i.e. classification and regression to get the final predictions. 
-# the model was run on the entire dataset to predict expected tip percentages. It resulted in a mean squared error of 0.8793.
-```
+# Final Overall Model
+Now this is the step were we combine both our models i.e. classification and regression to get the final predictions. 
+the model was run on the entire dataset to predict expected tip percentages. It resulted in a mean squared error of 0.8793.
 
 
 ```python
@@ -1264,14 +1211,11 @@ print ("final mean_squared_error:", metrics.mean_squared_error(ypred,test.Tip_pe
 print ("final r2_score:", metrics.r2_score(ypred,test.Tip_percentage))
 ```
 
-    final mean_squared_error: 9.290344075066576
-    final r2_score: 0.8739468198070226
+    final mean_squared_error: 8.843197938003723
+    final r2_score: 0.8802299714734141
     
 
-
-```python
-# Below is the plot of the residulas which pretty much okay considering almost the normal shape of the plot.
-```
+Below is the plot of the residulas which pretty much okay considering almost the normal shape of the plot.
 
 
 ```python
@@ -1288,5 +1232,5 @@ plt.show()
 ```
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_47_0.png)
+![png](Comp755_FinalProject_files/Comp755_FinalProject_48_0.png)
 
