@@ -19,9 +19,8 @@ import os, json, requests, pickle
 from scipy.stats import skew
 from shapely.geometry import Point,Polygon,MultiPoint,MultiPolygon
 from scipy.stats import ttest_ind, f_oneway, lognorm, levy, skew, chisquare
-#import scipy.stats as st
 from sklearn.preprocessing import normalize, scale
-from tabulate import tabulate #pretty print of tables. source: http://txt.arboreus.com/2013/03/13/pretty-print-tables-in-python.html
+from tabulate import tabulate #print of tables. source: http://txt.arboreus.com/2013/03/13/pretty-print-tables-in-python.html
 from shapely.geometry import Point,Polygon,MultiPoint
 %matplotlib inline
 
@@ -39,7 +38,7 @@ else: # Download dataset if not available on disk
     data = pd.read_csv(url)
     data.to_csv(url.split('/')[-1])
 
-# Print the size of the dataset
+# Print the rows and columns of the dataset
 print("Number of rows:", data.shape[0])
 print("Number of columns:", data.shape[1])
 ```
@@ -58,7 +57,7 @@ early to workplace etc.
 
 
 ```python
-# define the figure with 2 subplots
+# define the figure with 2 trip distance subplots
 fig,ax = plt.subplots(1,2,figsize = (15,4)) 
 
 # histogram of the number of trip distance
@@ -68,9 +67,9 @@ ax[0].set_ylabel('Count')
 ax[0].set_yscale('log')
 ax[0].set_title('Histogram of Trip Distance with outliers included')
 
-# create a vector to contain Trip Distance
+# vector creation to contain Trip Distance
 v = data.Trip_distance 
-# exclude any data point located further than 3 standard deviations of the median point and 
+# outlier removal by excluding any data point located further than 3 standard deviations of the median point and 
 # plot the histogram with 30 bins
 v[~((v-v.median()).abs()>3*v.std())].hist(bins=30,ax=ax[1]) # 
 ax[1].set_xlabel('Trip Distance (miles)')
@@ -85,13 +84,13 @@ pdf_fitted = lognorm.pdf(np.arange(0,12,.1),scatter,loc,mean)
 ax[1].plot(np.arange(0,12,.1),600000*pdf_fitted,'r') 
 ax[1].legend(['data','lognormal fit'])
 
-# export the figure
+# save the figure
 plt.savefig('Picture1.jpeg',format='jpeg')
 plt.show()
 ```
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_5_0.png)
+![png](Comp755_ProjectImages_files/Comp755_ProjectImages_5_0.png)
 
 
 Below is the analysis of mean and median trip distance grouped under different hours to understand the trean of trip distances
@@ -101,15 +100,15 @@ with longer distance like long trips to ariports etc. In the nex section we will
 
 
 ```python
-# First, convert pickup and drop off datetime variable in their specific righ format
+# First, convert pickup and drop off datetime variable in their specific right format which will useful for our predictive model
 data['Pickup_dt'] = data.lpep_pickup_datetime.apply(lambda x:dt.datetime.strptime(x,"%Y-%m-%d %H:%M:%S"))
 data['Dropoff_dt'] = data.Lpep_dropoff_datetime.apply(lambda x:dt.datetime.strptime(x,"%Y-%m-%d %H:%M:%S"))
 
-# Second, create a variable for pickup hours
+# Second, create a new variable for pickup hours
 data['Pickup_hour'] = data.Pickup_dt.apply(lambda x:x.hour)
 
 # Mean and Median of trip distance by pickup hour
-# We generate the table but also generate a plot for a better visualization
+# We generate the table and generate a plot for a visual insights
 
 fig,ax = plt.subplots(1,1,figsize=(9,5)) # prepare fig to plot mean and median values
 # use a pivot table to aggregate Trip_distance by hour
@@ -120,7 +119,6 @@ table1[['Mean_distance','Median_distance']].plot(ax=ax)
 plt.ylabel('Metric (miles)')
 plt.xlabel('Hours after midnight')
 plt.title('Distribution of trip distance by pickup hour')
-#plt.xticks(np.arange(0,30,6)+0.35,range(0,30,6))
 plt.xlim([0,23])
 plt.savefig('Picture2.jpeg',format='jpeg')
 plt.show()
@@ -129,7 +127,7 @@ print(tabulate(table1.values.tolist(),["Hour","Mean distance","Median distance"]
 ```
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_7_0.png)
+![png](Comp755_ProjectImages_files/Comp755_ProjectImages_7_0.png)
 
 
     -----Trip distance by hour of the day-----
@@ -174,7 +172,7 @@ morning might be due the large number of airport trips is not quite right as in 
 
 
 ```python
-# select airport trips
+# select airport trips to get a separate data portion in a variable
 airports_trips = data[(data.RateCodeID==2) | (data.RateCodeID==3)]
 print("Number of trips to/from NYC airports: ", airports_trips.shape[0])
 print("Average fare (calculated by the meter) of trips to/from NYC airports: $", airports_trips.Fare_amount.mean(),"per trip")
@@ -213,7 +211,7 @@ ax[0].set_xlabel('Trip distance (miles)')
 ax[0].set_ylabel('Group normalized trips count')
 ax[0].set_title('A. Trip distance distribution')
 
-# plot hourly distribution
+# plot hourly distribution of Airport and Non-airport trips
 airports_trips.Pickup_hour.value_counts(normalize=True).sort_index().plot(ax=ax[1])
 data.loc[~data.index.isin(v2.index),'Pickup_hour'].value_counts(normalize=True).sort_index().plot(ax=ax[1])
 ax[1].set_xlabel('Hours after midnight')
@@ -225,7 +223,7 @@ plt.show()
 ```
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_10_0.png)
+![png](Comp755_ProjectImages_files/Comp755_ProjectImages_10_0.png)
 
 
 Now build a derived variable for tip as a percentage of the total fare. Since the initial charge for NYC green taxi is $2.5,
@@ -260,7 +258,7 @@ In order to recognize the trip from upper manhattan we follow below stategy:
 
 
 ```python
-# import library
+# import library for polygon development
 from shapely.geometry import Point,Polygon,MultiPoint
 # data points that define the bounding box of the Upper Manhattan
 umanhattan = [(40.796937, -73.949503),(40.787945, -73.955822),(40.782772, -73.943575),
@@ -283,7 +281,7 @@ data['U_manhattan'] = data[['Pickup_latitude','Pickup_longitude']].apply(lambda 
 print("Processing time ", dt.datetime.now()-tic)
 ```
 
-    Processing time  0:01:39.649680
+    Processing time  0:01:21.843181
     
 
 The two distributions look the same however the t-test results in a zero p-value to imply that the two groups are different
@@ -316,7 +314,7 @@ print('t-test results:', ttest_ind(v1,v2,equal_var=False))
 ```
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_16_0.png)
+![png](Comp755_ProjectImages_files/Comp755_ProjectImages_16_0.png)
 
 
     t-test results: Ttest_indResult(statistic=55.958566779306864, pvalue=0.0)
@@ -353,7 +351,7 @@ else: # Download dataset if not available on disk
     data = pd.read_csv(url)
     data.to_csv(url.split('/')[-1])
 
-# Print the size of the dataset
+# Print the rows and columns of the dataset
 print("Number of rows:", data.shape[0])
 print("Number of columns: ", data.shape[1])
 
@@ -428,12 +426,12 @@ def clean_data(adata):
     data.loc[indices_oi, 'Extra'] = 0 # 0 was identified as the most frequent value
     print(round(100*len(indices_oi)/float(data.shape[0]),2),"% of values in Extra were invalid.--> Replaced by the most frequent 0")
     
-    # Total_amount: the minimum charge is 2.5, so I will replace every thing less than 2.5 by the median 11.76 (pre-obtained in analysis)
+    # Total_amount: the minimum charge is 2.5, so we will replace every thing less than 2.5 by the median 11.76 (pre-obtained in analysis)
     indices_oi = data[(data.Total_amount<2.5)].index
     data.loc[indices_oi,'Total_amount'] = 11.76
     print(round(100*len(indices_oi)/float(data.shape[0]),2),"% of values in total amount worth <$2.5.--> Replaced by the median 1.76")
     
-    # encode categorical to numeric (I avoid to use dummy to keep dataset small)
+    # encode categorical to numeric (We avoid to use dummy to keep dataset small)
     if data.Store_and_fwd_flag.dtype.name != 'int64':
         data['Store_and_fwd_flag'] = (data.Store_and_fwd_flag=='Y')*1
     
@@ -506,12 +504,11 @@ def engineer_features(adata):
     
     # derive time variables
     print("deriving time variables...")
-    ref_week = dt.datetime(2015,9,1).isocalendar()[1] # first week of september in 2015
+    ref_week = dt.datetime(2015,9,1).isocalendar()[1] # first week in our dataset
     data['Week'] = data.Pickup_dt.apply(lambda x:x.isocalendar()[1])-ref_week+1
     data['Week_day']  = data.Pickup_dt.apply(lambda x:x.isocalendar()[2])
     data['Month_day'] = data.Pickup_dt.apply(lambda x:x.day)
     data['Hour'] = data.Pickup_dt.apply(lambda x:x.hour)
-    #data.rename(columns={'Pickup_hour':'Hour'},inplace=True)
 
     # create shift variable:  1=(7am to 3pm), 2=(3pm to 11pm) and 3=(11pm to 7am)
     data['Shift_type'] = np.NAN
@@ -622,7 +619,7 @@ plt.show()
 ```
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_26_0.png)
+![png](Comp755_ProjectImages_files/Comp755_ProjectImages_26_0.png)
 
 
 
@@ -642,7 +639,7 @@ def visualize_continuous(df,label,method={'type':'histogram','bins':20},outlier=
     # define mean and standard deviation
     m = v.mean()
     s = v.std()
-    # prep the figure
+    # prep of the figure
     fig,ax = plt.subplots(1,2,figsize=(14,4))
     ax[0].set_title('Distribution of '+label)
     ax[1].set_title('Tip % by '+label)
@@ -726,7 +723,6 @@ def generate_boxplot(df,catName,ylimit):
     ylimit: tuple, list
     """
     df.boxplot('Tip_percentage',by=catName)
-    #plt.title('Tip % by '+catName)
     plt.title('')
     plt.ylabel('Tip (%)')
     if ylimit != [None,None]:
@@ -763,11 +759,10 @@ and found that fare amount is a significant predictor.
 ```python
 # Example of exploration of the Fare_amount using the implented code:
 visualize_continuous(data1,'Fare_amount',outlier='on')
-# test_classification(data,'Fare_amount',[0,25])
 ```
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_29_0.png)
+![png](Comp755_ProjectImages_files/Comp755_ProjectImages_29_0.png)
 
 
 The code below contains a lot of functions to explores the relationship of different variables with tip_percentage. We focus on
@@ -818,7 +813,7 @@ for v in df[['Pickup_latitude','Pickup_longitude','Dropoff_latitude','Dropoff_lo
 df2 = pd.DataFrame(orig_dest)
 
 ## creae pivot table for the heat map plot
-df2['val']=1 # dummy variable
+df2['val']=1 # dummy variable generation
 mat_cluster1 = df2.pivot_table(index=0,columns=1,values='val',aggfunc='count')
 
 ## generate the map
@@ -844,7 +839,7 @@ plt.show()
 ```
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_31_0.png)
+![png](Comp755_ProjectImages_files/Comp755_ProjectImages_31_0.png)
 
 
 At the end, we draw a heat map of all the independent variables to see if there is a correlation which exists among 
@@ -854,18 +849,16 @@ these variables.
 ```python
 continuous_variables=['Total_amount','Fare_amount','Trip_distance','Trip_duration','Tolls_amount','Speed_mph','Tip_percentage']
 cor_mat = data1[continuous_variables].corr()
-#fig,ax = plt.subplots(1,1,figsize = [6,6])
 plt.imshow(cor_mat)
 plt.xticks(list(range(len(continuous_variables))),continuous_variables,rotation='vertical')
 plt.yticks(list(range(len(continuous_variables))),continuous_variables)
 plt.colorbar()
 plt.title('Correlation between continuous variables')
 plt.show()
-#print cor_mat
 ```
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_33_0.png)
+![png](Comp755_ProjectImages_files/Comp755_ProjectImages_33_0.png)
 
 
 Afterwards, a t-test was performed between the trips from upper manhattan and the trips from rest of the manhattan. We can see
@@ -883,7 +876,7 @@ test_classification(data,'U_manhattan')
     
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_35_1.png)
+![png](Comp755_ProjectImages_files/Comp755_ProjectImages_35_1.png)
 
 
     Ttest_indResult(statistic=52.88979199536133, pvalue=0.0)
@@ -924,7 +917,7 @@ visualize_categories(data1,'Payment_type','histogram',[13,20])
     
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_37_1.png)
+![png](Comp755_ProjectImages_files/Comp755_ProjectImages_37_1.png)
 
 
 # Model Building:
@@ -1028,7 +1021,7 @@ from sklearn.ensemble import GradientBoostingClassifier
 print("Optimizing the classifier...")
 
 train = data.copy() # make a copy of the training set
-# since the dataset is too big for my system, select a small sample size to carry on training and 5 folds cross validation
+# since the dataset is too big for our system, we select a small sample size to carry on training and 5 folds cross validation
 train = train.loc[np.random.choice(train.index,size=100000,replace=False)]
 target = 'With_tip' # set target variable - it will be used later in optimization
 
@@ -1066,19 +1059,19 @@ print("Processing time:", dt.datetime.now()-tic)
 ```
 
     Optimizing the classifier...
-    [mean: 0.98948, std: 0.00083, params: {'n_estimators': 30}, mean: 0.99335, std: 0.00045, params: {'n_estimators': 50}, mean: 0.99528, std: 0.00046, params: {'n_estimators': 70}, mean: 0.99630, std: 0.00036, params: {'n_estimators': 90}, mean: 0.99690, std: 0.00032, params: {'n_estimators': 110}, mean: 0.99723, std: 0.00029, params: {'n_estimators': 130}, mean: 0.99747, std: 0.00028, params: {'n_estimators': 150}] {'n_estimators': 150} 0.997468632729903
+    [mean: 0.98882, std: 0.00043, params: {'n_estimators': 30}, mean: 0.99319, std: 0.00023, params: {'n_estimators': 50}, mean: 0.99506, std: 0.00024, params: {'n_estimators': 70}, mean: 0.99595, std: 0.00021, params: {'n_estimators': 90}, mean: 0.99649, std: 0.00018, params: {'n_estimators': 110}, mean: 0.99689, std: 0.00019, params: {'n_estimators': 130}, mean: 0.99709, std: 0.00016, params: {'n_estimators': 150}] {'n_estimators': 150} 0.9970919710726307
     
     Model report:
-    Accuracy: 0.97699
-    AUC Score (Train): 0.9986583139599121
-    CV Score - Mean : 0.9974686 | Std : 0.0002807974 | Min : 0.9970994 | Max : 0.9978044
+    Accuracy: 0.97655
+    AUC Score (Train): 0.9983425569241622
+    CV Score - Mean : 0.997092 | Std : 0.0001615035 | Min : 0.9969115 | Max : 0.9973589
     
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_40_1.png)
+![png](Comp755_ProjectImages_files/Comp755_ProjectImages_40_1.png)
 
 
-    Processing time: 0:05:59.675923
+    Processing time: 0:06:09.506191
     
 
 
@@ -1092,7 +1085,7 @@ ypred = gs_cls.best_estimator_.predict(test[predictors])
 print("ROC AUC:", metrics.roc_auc_score(ypred,test.With_tip))
 ```
 
-    ROC AUC: 0.9670504936344075
+    ROC AUC: 0.9678204527807158
     
 
 The next step is to perform Regressional analysis. We use random forest regression for this purpose. Below are some point 
@@ -1133,8 +1126,7 @@ from sklearn.ensemble import RandomForestRegressor
 # optimize n_estimator through grid search
 param_test = {'n_estimators':list(range(50,200,25))} # define range over which number of trees is to be optimized
 # initiate classification model
-#rfr = RandomForestRegressor(min_samples_split=2,max_depth=5,max_features='auto',random_state = 10)
-rfr = RandomForestRegressor()#n_estimators=100)
+rfr = RandomForestRegressor()
 # get results of the search grid
 gs_rfr = optimize_num_trees(rfr,param_test,'mean_squared_error',train,predictors,target)
 
@@ -1142,7 +1134,6 @@ gs_rfr = optimize_num_trees(rfr,param_test,'mean_squared_error',train,predictors
 print(gs_rfr.grid_scores_, gs_rfr.best_params_, gs_rfr.best_score_)
 
 # plot optimization results
-#plot_opt_results(gs_rfr)
 
 # cross validate the best model with optimized number of estimators
 modelfit(gs_rfr.best_estimator_,train,predictors,target,'mean_squared_error')
@@ -1160,24 +1151,24 @@ print(dt.datetime.now()-tic)
 plot_opt_results(gs_rfr)
 ```
 
-    [mean: -14.87971, std: 0.55324, params: {'n_estimators': 50}, mean: -14.79430, std: 0.42568, params: {'n_estimators': 75}, mean: -14.78471, std: 0.45720, params: {'n_estimators': 100}, mean: -14.80025, std: 0.60780, params: {'n_estimators': 125}, mean: -14.70800, std: 0.51408, params: {'n_estimators': 150}, mean: -14.68153, std: 0.55748, params: {'n_estimators': 175}] {'n_estimators': 175} -14.681534414798984
+    [mean: -15.57825, std: 0.86376, params: {'n_estimators': 50}, mean: -15.55477, std: 0.77360, params: {'n_estimators': 75}, mean: -15.47482, std: 0.77679, params: {'n_estimators': 100}, mean: -15.42605, std: 0.83242, params: {'n_estimators': 125}, mean: -15.43783, std: 0.75686, params: {'n_estimators': 150}, mean: -15.35111, std: 0.82297, params: {'n_estimators': 175}] {'n_estimators': 175} -15.351105923975595
     
     Model report:
-    Accuracy: 2.086399597857632
-    CV Score - Mean : -14.75519 | Std : 0.532602 | Min : -15.52856 | Max : -14.1299
+    Accuracy: 2.1607037866044476
+    CV Score - Mean : -15.37873 | Std : 0.8038684 | Min : -16.47665 | Max : -14.00984
     
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_43_1.png)
+![png](Comp755_ProjectImages_files/Comp755_ProjectImages_43_1.png)
 
 
-    RFR test mse: 15.233743385062716
-    RFR r2: 0.28323323914783805
-    0:13:52.783094
+    RFR test mse: 14.705532030183111
+    RFR r2: 0.28732108250608546
+    0:13:32.538537
     
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_43_3.png)
+![png](Comp755_ProjectImages_files/Comp755_ProjectImages_43_3.png)
 
 
 # Final Overall Model
@@ -1211,8 +1202,8 @@ print ("final mean_squared_error:", metrics.mean_squared_error(ypred,test.Tip_pe
 print ("final r2_score:", metrics.r2_score(ypred,test.Tip_percentage))
 ```
 
-    final mean_squared_error: 8.843197938003723
-    final r2_score: 0.8802299714734141
+    final mean_squared_error: 8.226937192291627
+    final r2_score: 0.8866747596200732
     
 
 Below is the plot of the residulas which pretty much okay considering almost the normal shape of the plot.
@@ -1232,5 +1223,5 @@ plt.show()
 ```
 
 
-![png](Comp755_FinalProject_files/Comp755_FinalProject_48_0.png)
+![png](Comp755_ProjectImages_files/Comp755_ProjectImages_48_0.png)
 
