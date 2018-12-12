@@ -1,7 +1,7 @@
 
 # Tip Prediction
 
-In this project we have worked on the data for Taxis in New York. The project aims to build a model which will predict whether
+In this project we have worked on the data for Taxis. The project aims to build a model which will predict whether
 whether a ride will get a tip or not and if yes how much will be the tip. The open source libraries used are :
 Shapely
 - Scikit learn
